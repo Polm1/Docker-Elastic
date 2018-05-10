@@ -1,0 +1,66 @@
+version: '2.2'
+services:
+  # TODO: INVESTIGATE HOW TO CUSTOMIZE CONTAINER NAME, WITH STRINGS DIFFERENT FROM "elasticsearch" it breaks kibana
+  # NODE 1
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:6.2.3
+    container_name: elasticsearch
+    environment:
+      - cluster.name=magi
+      - bootstrap.memory_lock=true
+      - "node.name=melchior"
+      #TODO: as is it breaks container
+      #- "path.logs=/var/log/elasticsearch"
+      #- "path.data=/var/data/elasticsearch"
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m -Des.enforce.bootstrap.checks=true"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - melchior_data:/usr/share/elasticsearch/data
+    ports:
+      - 9200:9200
+    networks:
+      - esnet
+  elasticsearch2:
+    image: docker.elastic.co/elasticsearch/elasticsearch:6.2.3
+    container_name: elasticsearch2
+    environment:
+      - cluster.name=magi
+      - bootstrap.memory_lock=true
+      - "node.name=balthasar"
+      #TODO: as is it breaks container
+      #- "path.logs=/var/log/elasticsearch"
+      #- "path.data=/var/data/elasticsearch"
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m -Des.enforce.bootstrap.checks=true"
+      - "discovery.zen.ping.unicast.hosts=elasticsearch"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - balthasar_data:/usr/share/elasticsearch/data
+    ports:
+      - 9201:9200
+    networks:
+      - esnet
+  kibana:
+    image: docker.elastic.co/kibana/kibana:6.2.3
+    container_name: kibana
+    environment:
+      SERVER_NAME: kibana.localdev.org
+      # ELASTICSEARCH_URL: http://elasticsearch.localdev.org
+    ports:
+      - 5601:5601
+    networks:
+      - esnet
+
+volumes:
+  melchior_data:
+    driver: local
+  balthasar_data:
+    driver: local
+
+networks:
+  esnet:
